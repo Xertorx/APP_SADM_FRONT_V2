@@ -16,6 +16,11 @@ class AppConfig {
   static String baseUrl = _resolveDefaultBaseUrl();
 
   static String _resolveDefaultBaseUrl() {
+    const configuredBaseUrl = String.fromEnvironment('API_BASE_URL');
+    if (configuredBaseUrl.isNotEmpty) {
+      return configuredBaseUrl;
+    }
+
     if (!kIsWeb && Platform.isAndroid) {
       return 'http://10.0.2.2:8862/SADM/api';
     }
