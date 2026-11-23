@@ -19,7 +19,26 @@ import 'admin_estadisticas_screen.dart';
 class PanelScreen extends StatelessWidget {
   const PanelScreen({super.key});
 
-  void _cerrarSesion(BuildContext context) {
+  Future<void> _cerrarSesion(BuildContext context) async {
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cerrar sesión'),
+        content: const Text('¿Seguro que deseas cerrar sesión?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            key: const Key('confirmar-cerrar-sesion'),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Cerrar sesión'),
+          ),
+        ],
+      ),
+    );
+    if (confirmar != true || !context.mounted) return;
     AuthSession.limpiar();
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const HomeScreen()),
@@ -60,35 +79,37 @@ class PanelScreen extends StatelessWidget {
                   style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 16),
-                _AccionCard(
-                  icon: Icons.favorite_border,
-                  titulo: 'Adoptar una mascota',
-                  descripcion: 'Mira las mascotas disponibles y postúlate para adoptar una.',
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const MascotasDisponiblesScreen()),
+                // Ajuste demo: el ADMINISTRADOR no adopta ni publica (el backend le responde 403).
+                if (!AuthSession.esAdministrador) ...[
+                  _AccionCard(
+                    icon: Icons.favorite_border,
+                    titulo: 'Adoptar una mascota',
+                    descripcion: 'Mira las mascotas disponibles y postúlate para adoptar una.',
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const MascotasDisponiblesScreen()),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 14),
-                _AccionCard(
-                  icon: Icons.volunteer_activism_outlined,
-                  titulo: 'Dar en adopción',
-                  descripcion: 'Publica una mascota o edita las que ya publicaste.',
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const MisMascotasScreen()),
+                  const SizedBox(height: 14),
+                  _AccionCard(
+                    icon: Icons.volunteer_activism_outlined,
+                    titulo: 'Dar en adopción',
+                    descripcion: 'Publica una mascota o edita las que ya publicaste.',
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const MisMascotasScreen()),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 14),
-                _AccionCard(
-                  icon: Icons.assignment_outlined,
-                  titulo: MisPostulacionesTextos.accionTitulo,
-                  descripcion: MisPostulacionesTextos.accionDescripcion,
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const MisPostulacionesScreen()),
+                  const SizedBox(height: 14),
+                  _AccionCard(
+                    icon: Icons.assignment_outlined,
+                    titulo: MisPostulacionesTextos.accionTitulo,
+                    descripcion: MisPostulacionesTextos.accionDescripcion,
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const MisPostulacionesScreen()),
+                    ),
                   ),
-                ),
+                ],
                 // HU27-HU28: solo visible para el ADMINISTRADOR (el backend lo exige igualmente).
                 if (AuthSession.esAdministrador) ...[
-                  const SizedBox(height: 14),
                   _AccionCard(
                     icon: Icons.fact_check_outlined,
                     titulo: AdminMascotasTextos.accionTitulo,
