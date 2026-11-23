@@ -1,0 +1,12 @@
+Imágenes del home (pantalla de inicio). Copia aquí tus archivos con estos nombres exactos:
+
+  principal.jpg   -> "Imagen principal" (180 px de alto, ancho completo)
+  comunidad1.jpg  -> "Nuestra comunidad" (200 x 140)
+  comunidad2.jpg  -> "Nuestra comunidad" (200 x 140)
+  comunidad3.jpg  -> "Nuestra comunidad" (200 x 140)
+  comunidad4.jpg  -> "Nuestra comunidad" (200 x 140)
+
+Mientras un archivo no exista, el home muestra el marcador de posición.
+Si tus imágenes son .png, cambia la extensión en lib/screens/home_screen.dart
+(constante _imagenPrincipal y lista _Galeria._imagenes).
+Después de agregarlas: flutter pub get y hot restart (el hot reload no las detecta).
