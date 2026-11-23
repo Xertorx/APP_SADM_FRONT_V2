@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-: "${API_BASE_URL:?Configure API_BASE_URL in the Vercel project settings.}"
+API_BASE_URL="${API_BASE_URL:-https://app-sadm.onrender.com/SADM/api}"
 
 case "$API_BASE_URL" in
   https://*) ;;

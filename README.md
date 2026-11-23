@@ -13,8 +13,9 @@ Flutter 3.47.5, compila la aplicación web y publica `build/web`.
   `localhost`, porque en producción apuntaría al dispositivo de cada visitante.
 - Configura el backend para permitir solicitudes CORS desde el dominio de
   Vercel que usarás, incluidos los dominios de Preview si los necesitas.
-- La URL base debe incluir el contexto de la API, por ejemplo
-  `https://api.ejemplo.com/SADM/api`, sin una barra final.
+- La URL base predeterminada es
+  `https://app-sadm.onrender.com/SADM/api`. Si configuras `API_BASE_URL` en
+  Vercel, debe incluir el contexto de la API y no tener barra final.
 
 ### Pasos
 
@@ -23,14 +24,14 @@ Flutter 3.47.5, compila la aplicación web y publica `build/web`.
    importa el repositorio.
 3. Deja **Root Directory** en la raíz del repositorio. Vercel leerá
    `vercel.json`; la salida estática configurada es `build/web`.
-4. En **Settings → Environment Variables**, agrega:
+4. Opcionalmente, en **Settings → Environment Variables**, agrega o actualiza:
    - **Name:** `API_BASE_URL`
-   - **Value:** la URL HTTPS completa de la API, por ejemplo
-     `https://api.ejemplo.com/SADM/api`
+   - **Value:** `https://app-sadm.onrender.com/SADM/api`
    - Selecciona los entornos que usarás (**Production**, y también **Preview**
      si corresponde).
-5. Guarda la variable y pulsa **Deploy**. Si cambias la variable después,
-   vuelve a desplegar para que Flutter la incorpore en la compilación.
+5. Si cambiaste o agregaste la variable, guarda los cambios y pulsa
+   **Redeploy** en el último despliegue. Si no defines la variable, el script
+   de Vercel utiliza esta URL predeterminada.
 6. Cuando termine, abre el dominio asignado por Vercel y comprueba el inicio de
    sesión y las funciones que consumen el backend. Si el navegador bloquea las
    solicitudes, revisa HTTPS y CORS en el backend.
