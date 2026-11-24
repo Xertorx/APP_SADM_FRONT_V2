@@ -206,16 +206,12 @@ void main() {
 
       expect(find.text('¿Quieres solicitar la adopción de Luna?'), findsOneWidget);
       expect(find.text('Resumen del proceso de adopción'), findsOneWidget);
-      expect(
-        find.textContaining('Etapa 1 — Evaluación inicial', findRichText: true),
-        findsOneWidget,
-      );
-      expect(find.textContaining('Revisión del perfil y entrevista', findRichText: true),
+      expect(find.textContaining('Etapa 1 — Formulario', findRichText: true), findsOneWidget);
+      expect(find.textContaining('Respondes las preguntas del dador', findRichText: true),
           findsOneWidget);
-      expect(find.textContaining('Etapa 2 — Visita al hogar', findRichText: true), findsOneWidget);
-      expect(find.textContaining('Verificación del entorno', findRichText: true), findsOneWidget);
-      expect(find.textContaining('Etapa 3 — Decisión final', findRichText: true), findsOneWidget);
-      expect(find.textContaining('Selección del adoptante', findRichText: true), findsOneWidget);
+      expect(find.textContaining('Etapa 2 — Documentos', findRichText: true), findsOneWidget);
+      expect(find.textContaining('Etapa 3 — Entrevista', findRichText: true), findsOneWidget);
+      expect(find.textContaining('Etapa 4 — Visita', findRichText: true), findsOneWidget);
       expect(find.text('Términos y condiciones'), findsOneWidget);
       expect(find.text('Acepto los términos y condiciones'), findsOneWidget);
       expect(api.rutas.where((r) => r.startsWith('POST')), isEmpty);
@@ -268,7 +264,7 @@ void main() {
       expect(find.text('0'), findsOneWidget);
       expect(api.postCalls, 1);
 
-      await tester.tap(find.text('Cerrar'));
+      await tester.tap(find.text('Más tarde'));
       await tester.pumpAndSettle();
 
       expect(find.text('Ya te has postulado a esta mascota. Estado:'), findsOneWidget);

@@ -9,6 +9,7 @@ import '../utils/foto_url.dart';
 import 'configuracion_seleccion_screen.dart';
 import 'eliminar_mascota_dialog.dart';
 import 'mascota_form_screen.dart';
+import 'postulantes_mascota_screen.dart';
 
 /// "Dar en adopción": the usuario's published mascotas, with access to edit
 /// each one and to register a new one.
@@ -107,6 +108,17 @@ class _MisMascotasScreenState extends State<MisMascotasScreen> {
     await _cargar(mostrarSpinner: false);
   }
 
+  Future<void> _verPostulantes(MascotaDetalle mascota) async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => PostulantesMascotaScreen(
+          mascotaId: mascota.id,
+          mascotaNombre: mascota.nombre,
+        ),
+      ),
+    );
+  }
+
   Future<void> _eliminar(MascotaDetalle mascota) async {
     final servicio = MascotaEliminacionService();
     final eliminada = await showDialog<bool>(
@@ -186,6 +198,9 @@ class _MisMascotasScreenState extends State<MisMascotasScreen> {
                 onEditar: () => _editar(mascota),
                 onConfigurar: () => _configurar(mascota),
                 onEliminar: () => _eliminar(mascota),
+                onPostulantes: mascota.estado.toUpperCase() == 'DISPONIBLE'
+                    ? () => _verPostulantes(mascota)
+                    : null,
               ),
               const SizedBox(height: 12),
             ],
@@ -201,9 +216,11 @@ class _MascotaTile extends StatelessWidget {
     required this.onEditar,
     required this.onConfigurar,
     required this.onEliminar,
+    this.onPostulantes,
   });
 
   final MascotaDetalle mascota;
+  final VoidCallback? onPostulantes;
   final VoidCallback onEditar;
   final VoidCallback onConfigurar;
   final VoidCallback onEliminar;
@@ -267,6 +284,12 @@ class _MascotaTile extends StatelessWidget {
                   ],
                 ),
               ),
+              if (onPostulantes != null)
+                IconButton(
+                  tooltip: 'Postulantes de ${mascota.nombre}',
+                  icon: const Icon(Icons.groups_outlined),
+                  onPressed: onPostulantes,
+                ),
               IconButton(
                 tooltip: 'Proceso de selección de ${mascota.nombre}',
                 icon: const Icon(Icons.tune),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'formulario_postulacion_screen.dart';
 
 import '../config/detalle_mascota_textos.dart';
 import '../config/postulacion_textos.dart';
@@ -137,6 +138,18 @@ class _MascotaDetalleScreenState extends State<MascotaDetalleScreen> {
       setState(() => _estadoPostulacion = result.postulacion!.estado);
     }
     if (result.refrescar) await _cargar(mostrarSpinner: false);
+
+    final id = result.postulacion?.id;
+    if (result.abrirFormulario && id != null && mounted) {
+      await Navigator.of(context).push<bool>(
+        MaterialPageRoute(
+          builder: (_) => FormularioPostulacionScreen(
+            postulacionId: id,
+            mascotaNombre: _mascota?.nombre,
+          ),
+        ),
+      );
+    }
   }
 
   @override

@@ -9,12 +9,19 @@ import '../utils/fecha_formato.dart';
 
 /// What the detail screen needs to know once the dialog closes.
 class PostulacionDialogResult {
-  const PostulacionDialogResult({this.postulacion, this.refrescar = false});
+  const PostulacionDialogResult({
+    this.postulacion,
+    this.refrescar = false,
+    this.abrirFormulario = false,
+  });
 
   final Postulacion? postulacion;
 
   /// True when the backend said the local data was stale (duplicada / no disponible).
   final bool refrescar;
+
+  /// True when the usuario chose to answer the etapa 1 form right away.
+  final bool abrirFormulario;
 }
 
 /// Confirmation dialog for a postulación (`POST /api/postulaciones`).
@@ -67,11 +74,17 @@ class _PostulacionDialogState extends State<PostulacionDialog> {
     }
   }
 
-  void _cerrar() {
+  void _cerrar({bool abrirFormulario = false}) {
     if (_enviando) return;
     final hayCambios = _creada != null || _refrescar;
     Navigator.of(context).pop(
-      hayCambios ? PostulacionDialogResult(postulacion: _creada, refrescar: _refrescar) : null,
+      hayCambios
+          ? PostulacionDialogResult(
+              postulacion: _creada,
+              refrescar: _refrescar,
+              abrirFormulario: abrirFormulario,
+            )
+          : null,
     );
   }
 
@@ -112,12 +125,28 @@ class _PostulacionDialogState extends State<PostulacionDialog> {
         actionsOverflowButtonSpacing: 8,
         actions: exito
             ? [
-                ElevatedButton(
-                  style: _estiloBoton,
-                  autofocus: true,
-                  onPressed: _cerrar,
-                  child: const Text(PostulacionTextos.cerrar),
-                ),
+                if (_creada!.id != null) ...[
+                  OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppPalette.textDark,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    ),
+                    onPressed: _cerrar,
+                    child: const Text(PostulacionTextos.despues),
+                  ),
+                  ElevatedButton(
+                    style: _estiloBoton,
+                    autofocus: true,
+                    onPressed: () => _cerrar(abrirFormulario: true),
+                    child: const Text(PostulacionTextos.responderAhora),
+                  ),
+                ] else
+                  ElevatedButton(
+                    style: _estiloBoton,
+                    autofocus: true,
+                    onPressed: _cerrar,
+                    child: const Text(PostulacionTextos.cerrar),
+                  ),
               ]
             : [
                 OutlinedButton(
@@ -421,6 +450,8 @@ class _ExitoView extends StatelessWidget {
               ),
             ),
           ),
+          const SizedBox(height: 12),
+          const Text(PostulacionTextos.exitoSiguientePaso, textAlign: TextAlign.center),
         ],
       ),
     );

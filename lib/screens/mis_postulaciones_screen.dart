@@ -6,6 +6,7 @@ import '../models/mi_postulacion.dart';
 import '../services/api_exception.dart';
 import '../services/mis_postulaciones_service.dart';
 import '../utils/foto_url.dart';
+import 'formulario_postulacion_screen.dart';
 import 'mascota_detalle_screen.dart';
 import 'mascotas_disponibles_screen.dart';
 import 'progreso_etapas.dart';
@@ -73,6 +74,20 @@ class _MisPostulacionesScreenState extends State<MisPostulacionesScreen>
     }
   }
 
+  Future<void> _abrirFormulario(MiPostulacion p) async {
+    await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => FormularioPostulacionScreen(
+          postulacionId: p.id,
+          mascotaNombre: p.mascotaNombre,
+        ),
+      ),
+    );
+    if (!mounted) return;
+    // Al volver se recarga: el estado y el puntaje pueden haber cambiado.
+    await _cargar(mostrarSpinner: false);
+  }
+
   List<MiPostulacion> get _filtradas => switch (_tabs.index) {
         1 => _todas.where((p) => p.esActiva).toList(),
         2 => _todas.where((p) => p.esGanadora).toList(),
@@ -137,7 +152,10 @@ class _MisPostulacionesScreenState extends State<MisPostulacionesScreen>
                     padding: const EdgeInsets.all(16),
                     itemCount: lista.length,
                     separatorBuilder: (_, _) => const SizedBox(height: 14),
-                    itemBuilder: (_, i) => _TarjetaPostulacion(postulacion: lista[i]),
+                    itemBuilder: (_, i) => _TarjetaPostulacion(
+                      postulacion: lista[i],
+                      onAbrirFormulario: _abrirFormulario,
+                    ),
                   ),
           ),
         ),
@@ -149,9 +167,10 @@ class _MisPostulacionesScreenState extends State<MisPostulacionesScreen>
 }
 
 class _TarjetaPostulacion extends StatelessWidget {
-  const _TarjetaPostulacion({required this.postulacion});
+  const _TarjetaPostulacion({required this.postulacion, required this.onAbrirFormulario});
 
   final MiPostulacion postulacion;
+  final ValueChanged<MiPostulacion> onAbrirFormulario;
 
   @override
   Widget build(BuildContext context) {
@@ -223,18 +242,46 @@ class _TarjetaPostulacion extends StatelessWidget {
               ),
             ],
             const SizedBox(height: 8),
-            // TODO HU14-HU16 / HU20: avisos y botones por etapa ("Continuar etapa",
-            // "Abrir chat", "Ver notificación"). Por ahora solo "Ver detalle".
-            Align(
-              alignment: Alignment.centerRight,
-              child: OutlinedButton(
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => MascotaDetalleScreen(mascotaId: p.mascotaId),
-                  ),
+            if (p.formularioPendiente) ...[
+              const SizedBox(height: 4),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.secondaryContainer,
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Text(MisPostulacionesTextos.verDetalle),
+                child: const Text(MisPostulacionesTextos.avisoFormularioPendiente),
               ),
+              const SizedBox(height: 8),
+            ],
+            // TODO HU15-HU16 / HU20: botones de las etapas 2 a 4 ("Abrir chat", etc.).
+            Wrap(
+              alignment: WrapAlignment.end,
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                if (p.formularioPendiente)
+                  ElevatedButton.icon(
+                    onPressed: () => onAbrirFormulario(p),
+                    icon: const Icon(Icons.edit_note),
+                    label: const Text(MisPostulacionesTextos.responderFormulario),
+                  )
+                else if (p.formularioEnviado)
+                  OutlinedButton.icon(
+                    onPressed: () => onAbrirFormulario(p),
+                    icon: const Icon(Icons.fact_check_outlined),
+                    label: const Text(MisPostulacionesTextos.verRespuestas),
+                  ),
+                OutlinedButton(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => MascotaDetalleScreen(mascotaId: p.mascotaId),
+                    ),
+                  ),
+                  child: const Text(MisPostulacionesTextos.verDetalle),
+                ),
+              ],
             ),
           ],
         ),

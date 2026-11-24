@@ -44,6 +44,12 @@ class MisPostulacionesTextos {
   static String etapaNDeTotal(int n, int total) => 'Etapa $n de $total';
   static String descartadaEnEtapa(int n) => 'Descartada en etapa $n';
 
+  // Etapa 1: formulario
+  static const responderFormulario = 'Responder formulario';
+  static const verRespuestas = 'Ver mis respuestas';
+  static const avisoFormularioPendiente =
+      'Tienes pendiente la etapa 1: responde el formulario del dador para continuar.';
+
   // Errores
   static const errorRespuesta = 'No pudimos leer la respuesta del servidor.';
   static const errorGenerico = 'No pudimos cargar tus postulaciones. Inténtalo de nuevo.';

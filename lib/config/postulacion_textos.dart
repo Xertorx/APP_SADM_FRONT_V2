@@ -26,9 +26,10 @@ class PostulacionTextos {
   // Resumen del proceso (se muestra dentro del modal)
   static const tituloProceso = 'Resumen del proceso de adopción';
   static const etapas = [
-    (numero: 1, titulo: 'Evaluación inicial', descripcion: 'Revisión del perfil y entrevista'),
-    (numero: 2, titulo: 'Visita al hogar', descripcion: 'Verificación del entorno'),
-    (numero: 3, titulo: 'Decisión final', descripcion: 'Selección del adoptante'),
+    (numero: 1, titulo: 'Formulario', descripcion: 'Respondes las preguntas del dador'),
+    (numero: 2, titulo: 'Documentos', descripcion: 'Envías los documentos solicitados'),
+    (numero: 3, titulo: 'Entrevista', descripcion: 'Conversación con el dador'),
+    (numero: 4, titulo: 'Visita', descripcion: 'Visita domiciliaria'),
   ];
 
   // Términos y condiciones
@@ -50,6 +51,10 @@ class PostulacionTextos {
   static const exitoFecha = 'Fecha de postulación';
   static const exitoEstado = 'Estado';
   static const exitoPuntaje = 'Puntaje';
+  static const exitoSiguientePaso =
+      'Siguiente paso: responde el formulario de la etapa 1 para que el dador conozca tu perfil.';
+  static const responderAhora = 'Responder formulario';
+  static const despues = 'Más tarde';
 
   // Errores
   static const errorDuplicada = 'Ya te has postulado a esta mascota';

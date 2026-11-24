@@ -40,6 +40,7 @@ class MiPostulacion {
     this.primeraFotoId,
     this.estadoDetalle,
     this.fechaActualizacion,
+    this.estadoCodigo,
   });
 
   final int id;
@@ -56,6 +57,18 @@ class MiPostulacion {
   final String estadoEtiqueta;
   final String? estadoDetalle;
   final DateTime? fechaActualizacion;
+
+  /// Estado interno del backend (p. ej. ETAPA_1_EN_CURSO).
+  final String? estadoCodigo;
+
+  /// Etapa 1 pendiente: el adoptante debe responder el formulario.
+  bool get formularioPendiente => estadoCodigo == 'ETAPA_1_EN_CURSO';
+
+  /// El adoptante ya envió el formulario (en evaluación o evaluado).
+  bool get formularioEnviado =>
+      estadoCodigo != null &&
+      estadoCodigo != 'ETAPA_1_EN_CURSO' &&
+      !estadoCodigo!.startsWith('CANCELADA');
 
   bool get esActiva => estado == EstadoMiPostulacion.activa;
   bool get esGanadora => estado == EstadoMiPostulacion.ganadora;
@@ -84,6 +97,7 @@ class MiPostulacion {
       estadoEtiqueta: (json['estadoEtiqueta'] as String?) ?? '',
       estadoDetalle: json['estadoDetalle'] as String?,
       fechaActualizacion: _fecha(json['fechaActualizacion']),
+      estadoCodigo: json['estadoCodigo'] as String?,
     );
   }
 
@@ -102,6 +116,7 @@ class MiPostulacion {
         'estadoEtiqueta': estadoEtiqueta,
         'estadoDetalle': estadoDetalle,
         'fechaActualizacion': fechaActualizacion?.toUtc().toIso8601String(),
+        'estadoCodigo': estadoCodigo,
       };
 
   static int? _entero(Object? valor) {
