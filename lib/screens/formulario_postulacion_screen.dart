@@ -280,7 +280,8 @@ class _FormularioPostulacionScreenState
         if (formulario.preguntas.isEmpty)
           const _Centro(
             icono: Icons.quiz_outlined,
-            texto: 'El dador no configuró preguntas para esta mascota.',
+            texto: 'El dador todavía no ha definido las preguntas del formulario. '
+                'Vuelve más tarde: tu postulación sigue activa.',
           ),
         for (var i = 0; i < formulario.preguntas.length; i++) ...[
           _PreguntaCard(

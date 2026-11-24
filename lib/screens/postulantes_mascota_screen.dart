@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 
+import '../models/configuracion_seleccion.dart';
 import '../models/formulario_postulacion.dart';
 import '../services/api_exception.dart';
+import '../services/configuracion_seleccion_service.dart';
 import '../services/formulario_postulacion_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/fecha_formato.dart';
 import 'evaluacion_formulario_screen.dart';
+import 'preguntas_formulario_screen.dart';
 
 /// Vista del dador: postulantes de una de sus mascotas, con acceso a evaluar el
 /// formulario de la etapa 1.
@@ -33,6 +36,9 @@ class _PostulantesMascotaScreenState extends State<PostulantesMascotaScreen> {
   String? _error;
   List<Postulante> _postulantes = const [];
 
+  /// Estado de las preguntas del formulario; null si no se pudo consultar.
+  PreguntasFormulario? _preguntas;
+
   @override
   void initState() {
     super.initState();
@@ -55,9 +61,19 @@ class _PostulantesMascotaScreenState extends State<PostulantesMascotaScreen> {
     }
     try {
       final lista = await _service.listarPostulantes(widget.mascotaId);
+      PreguntasFormulario? preguntas;
+      final configService = ConfiguracionSeleccionService();
+      try {
+        preguntas = await configService.obtenerPreguntasFormulario(widget.mascotaId);
+      } on ApiException {
+        preguntas = null; // El aviso es opcional: no bloquea la lista.
+      } finally {
+        configService.dispose();
+      }
       if (!mounted) return;
       setState(() {
         _postulantes = lista;
+        _preguntas = preguntas;
         _error = null;
         _cargando = false;
       });
@@ -68,6 +84,18 @@ class _PostulantesMascotaScreenState extends State<PostulantesMascotaScreen> {
         _cargando = false;
       });
     }
+  }
+
+  Future<void> _abrirPreguntas() async {
+    final guardado = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => PreguntasFormularioScreen(
+          mascotaId: widget.mascotaId,
+          nombreMascota: widget.mascotaNombre,
+        ),
+      ),
+    );
+    if (guardado == true && mounted) await _cargar(mostrarSpinner: false);
   }
 
   Future<void> _abrir(Postulante postulante) async {
@@ -87,7 +115,16 @@ class _PostulantesMascotaScreenState extends State<PostulantesMascotaScreen> {
   Widget build(BuildContext context) {
     final pendientes = _postulantes.where((p) => p.pendienteEvaluacion).length;
     return Scaffold(
-      appBar: AppBar(title: Text('Postulantes de ${widget.mascotaNombre}')),
+      appBar: AppBar(
+        title: Text('Postulantes de ${widget.mascotaNombre}'),
+        actions: [
+          IconButton(
+            tooltip: 'Preguntas del formulario',
+            icon: const Icon(Icons.quiz_outlined),
+            onPressed: _abrirPreguntas,
+          ),
+        ],
+      ),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
@@ -100,6 +137,34 @@ class _PostulantesMascotaScreenState extends State<PostulantesMascotaScreen> {
                       padding: const EdgeInsets.all(16),
                       physics: const AlwaysScrollableScrollPhysics(),
                       children: [
+                        if (_preguntas != null && _preguntas!.preguntas.isEmpty)
+                          Container(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.red.shade50,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: Colors.red.shade200),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Tu formulario no tiene preguntas, así que los postulantes no '
+                                  'pueden completar la etapa 1.',
+                                ),
+                                if (_preguntas!.editable)
+                                  Align(
+                                    alignment: Alignment.centerRight,
+                                    child: TextButton.icon(
+                                      onPressed: _abrirPreguntas,
+                                      icon: const Icon(Icons.quiz_outlined),
+                                      label: const Text('Agregar preguntas'),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
                         if (_error != null)
                           _Mensaje(
                             icono: Icons.error_outline,

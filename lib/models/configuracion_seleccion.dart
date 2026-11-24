@@ -295,6 +295,44 @@ class ConfiguracionSeleccion {
       };
 }
 
+/// Preguntas del formulario (etapa 1) de una mascota ya publicada.
+/// `GET /api/mascotas/{id}/configuracion-seleccion/preguntas`.
+class PreguntasFormulario {
+  const PreguntasFormulario({
+    required this.mascotaId,
+    required this.editable,
+    required this.puntajeMaximoEtapa,
+    required this.preguntas,
+    this.motivo,
+    this.estadoMascota,
+  });
+
+  factory PreguntasFormulario.fromJson(Map<String, dynamic> json, {required int mascotaId}) =>
+      PreguntasFormulario(
+        mascotaId: _entero(json['mascotaId']) ?? mascotaId,
+        estadoMascota: json['estadoMascota'] as String?,
+        editable: json['editable'] == true,
+        motivo: json['motivo'] as String?,
+        puntajeMaximoEtapa: _entero(json['puntajeMaximoEtapa']) ?? 0,
+        preguntas: [
+          if (json['preguntas'] is List)
+            for (final item in json['preguntas'] as List)
+              if (item is Map<String, dynamic>) PreguntaSeleccion.fromJson(item),
+        ],
+      );
+
+  final int mascotaId;
+  final String? estadoMascota;
+  final bool editable;
+
+  /// Por qué no se pueden editar (null si [editable]).
+  final String? motivo;
+
+  /// 0 cuando la etapa no tiene máximo: el backend toma la suma de las preguntas.
+  final int puntajeMaximoEtapa;
+  final List<PreguntaSeleccion> preguntas;
+}
+
 int? _entero(Object? valor) => valor is num ? valor.toInt() : int.tryParse('$valor');
 
 String _texto(Object? valor) => valor is String ? valor : '';

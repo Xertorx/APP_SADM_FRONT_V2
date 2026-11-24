@@ -83,6 +83,49 @@ class ConfiguracionSeleccionService {
     }
   }
 
+  /// `GET /api/mascotas/{id}/configuracion-seleccion/preguntas`: preguntas del formulario de
+  /// una mascota publicada y si todavía se pueden cambiar.
+  Future<PreguntasFormulario> obtenerPreguntasFormulario(int mascotaId) async {
+    final response = await _enviar(
+      () => _client.get(_uri(mascotaId, '/configuracion-seleccion/preguntas'), headers: _headersJson),
+    );
+    return _preguntasFormulario(response, mascotaId);
+  }
+
+  /// `PUT /api/mascotas/{id}/configuracion-seleccion/preguntas`: reemplaza las preguntas de la
+  /// etapa 1 sin tocar las demás etapas.
+  Future<PreguntasFormulario> guardarPreguntasFormulario(
+    int mascotaId,
+    int puntajeMaximo,
+    List<PreguntaSeleccion> preguntas,
+  ) async {
+    final response = await _enviar(
+      () => _client.put(
+        _uri(mascotaId, '/configuracion-seleccion/preguntas'),
+        headers: _headersJson,
+        body: jsonEncode({
+          'puntajeMaximo': puntajeMaximo,
+          'elementos': [for (final p in preguntas) p.toJson()],
+        }),
+      ),
+    );
+    return _preguntasFormulario(response, mascotaId);
+  }
+
+  PreguntasFormulario _preguntasFormulario(http.Response response, int mascotaId) {
+    if (response.statusCode != 200) throw _error(response);
+    try {
+      final decoded = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+      final data = decoded['data'];
+      return PreguntasFormulario.fromJson(
+        data is Map<String, dynamic> ? data : decoded,
+        mascotaId: mascotaId,
+      );
+    } catch (_) {
+      throw const ServerException('Respuesta inesperada del servidor.');
+    }
+  }
+
   Future<http.Response> _enviar(Future<http.Response> Function() llamada) async {
     try {
       return await llamada().timeout(_timeout);

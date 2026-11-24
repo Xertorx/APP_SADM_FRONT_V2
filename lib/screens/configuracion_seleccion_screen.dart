@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../config/preguntas_sugeridas.dart';
 import '../models/configuracion_seleccion.dart';
 import '../services/api_exception.dart';
 import '../services/auth_session.dart';
@@ -8,6 +9,7 @@ import '../theme/app_theme.dart';
 import '../utils/configuracion_validators.dart';
 import 'configuracion_elemento_dialogs.dart';
 import 'distribucion_puntajes.dart';
+import 'preguntas_formulario_screen.dart';
 
 /// Estado de la mascota en el que la configuración todavía se puede editar.
 const estadoBorradorConfiguracion = 'BORRADOR_CONFIGURACION';
@@ -167,6 +169,31 @@ class _ConfiguracionSeleccionScreenState extends State<ConfiguracionSeleccionScr
       }
       return _conElementos(c, etapa, lista);
     });
+  }
+
+  /// Llena la etapa de preguntas con las sugeridas, repartiendo su puntaje máximo.
+  void _usarSugeridas() {
+    _editar((c) {
+      final maximo = c.preguntas.puntajeMaximo;
+      final sugeridas = preguntasSugeridas(puntajeMaximo: maximo);
+      final nuevoMaximo = maximo > 0 ? maximo : sugeridas.fold(0, (a, p) => a + p.puntaje);
+      return c.copyWith(
+        preguntas: DatosEtapa(puntajeMaximo: nuevoMaximo, elementos: List.unmodifiable(sugeridas)),
+      );
+    });
+  }
+
+  Future<void> _editarPreguntasPublicada() async {
+    final guardado = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => PreguntasFormularioScreen(
+          mascotaId: widget.mascotaId,
+          nombreMascota: widget.nombreMascota,
+          service: _service,
+        ),
+      ),
+    );
+    if (guardado == true && mounted) await _cargar();
   }
 
   void _eliminar(ElementoSeleccion elemento) {
@@ -353,7 +380,18 @@ class _ConfiguracionSeleccionScreenState extends State<ConfiguracionSeleccionScr
         if (_soloLectura) ...[
           const _Aviso(
             tipo: _TipoAviso.info,
-            mensaje: 'La configuración está bloqueada porque la mascota ya fue enviada a revisión.',
+            mensaje: 'La configuración está bloqueada porque la mascota ya fue enviada a revisión. '
+                'Aún puedes definir las preguntas del formulario mientras ningún adoptante lo haya enviado.',
+          ),
+          const SizedBox(height: 12),
+          ElevatedButton.icon(
+            onPressed: _editarPreguntasPublicada,
+            icon: const Icon(Icons.quiz_outlined),
+            label: Text(
+              config.preguntas.elementos.isEmpty
+                  ? 'Agregar preguntas del formulario'
+                  : 'Editar preguntas del formulario',
+            ),
           ),
           const SizedBox(height: 16),
         ],
@@ -376,6 +414,7 @@ class _ConfiguracionSeleccionScreenState extends State<ConfiguracionSeleccionScr
           onAgregar: () => _abrirDialogo(),
           onEditar: (e) => _abrirDialogo(existente: e),
           onEliminar: _eliminar,
+          onUsarSugeridas: _etapa == EtapaSeleccion.preguntas ? _usarSugeridas : null,
         ),
         const SizedBox(height: 16),
         if (!_soloLectura && erroresFinalizar.isNotEmpty) ...[
@@ -521,10 +560,12 @@ class _PanelEtapa extends StatelessWidget {
     required this.onAgregar,
     required this.onEditar,
     required this.onEliminar,
+    this.onUsarSugeridas,
   });
 
   final EtapaSeleccion etapa;
   final DatosEtapa<ElementoSeleccion> datos;
+  final VoidCallback? onUsarSugeridas;
   final bool editable;
   final VoidCallback onAgregar;
   final ValueChanged<ElementoSeleccion> onEditar;
@@ -625,6 +666,14 @@ class _PanelEtapa extends StatelessWidget {
                 icon: const Icon(Icons.add),
                 label: Text(_textoAgregar),
               ),
+              if (onUsarSugeridas != null && datos.elementos.isEmpty) ...[
+                const SizedBox(height: 8),
+                TextButton.icon(
+                  onPressed: onUsarSugeridas,
+                  icon: const Icon(Icons.auto_awesome_outlined),
+                  label: Text('Usar $cantidadPreguntasSugeridas preguntas sugeridas'),
+                ),
+              ],
             ],
           ],
         ),
