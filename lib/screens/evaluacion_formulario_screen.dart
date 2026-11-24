@@ -120,10 +120,10 @@ class _EvaluacionFormularioScreenState
     final confirmar = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(aprobar ? 'Aprobar etapa 1' : 'Descartar postulación'),
+        title: Text(aprobar ? 'Guardar calificación' : 'Descartar postulación'),
         content: Text(
           aprobar
-              ? '$nombre obtendrá $_total puntos y pasará a la etapa 2 (documentos). '
+              ? '$nombre obtendrá $_total puntos en el formulario y seguirá en el proceso. '
                     'Esta decisión no se puede deshacer.'
               : '$nombre quedará descartado del proceso y verá tu comentario como motivo. '
                     'Esta decisión no se puede deshacer.',
@@ -135,7 +135,7 @@ class _EvaluacionFormularioScreenState
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: Text(aprobar ? 'Aprobar' : 'Descartar'),
+            child: Text(aprobar ? 'Guardar' : 'Descartar'),
           ),
         ],
       ),
@@ -184,7 +184,7 @@ class _EvaluacionFormularioScreenState
         if (!didPop) Navigator.of(context).pop(_evaluada);
       },
       child: Scaffold(
-        appBar: AppBar(title: const Text('Evaluar etapa 1')),
+        appBar: AppBar(title: const Text('Respuestas del postulante')),
         body: SafeArea(
           child: Center(
             child: ConstrainedBox(
@@ -247,15 +247,15 @@ class _EvaluacionFormularioScreenState
         if (e.estado == EstadoPostulacionCodigo.etapa1EnCurso)
           const _Aviso(
             icono: Icons.hourglass_empty,
-            texto: 'El adoptante aún no ha enviado el formulario. Podrás evaluarlo cuando lo envíe.',
+            texto: 'El adoptante aún no ha enviado el formulario. Verás sus respuestas cuando lo envíe.',
           )
         else if (!e.evaluable)
           _Aviso(
             icono: Icons.verified_outlined,
-            texto:
-                'Esta etapa ya fue evaluada'
-                '${e.fechaEvaluacion == null ? '' : ' el ${formatearFechaHora(e.fechaEvaluacion!)}'}. '
-                'Estado: ${e.estadoEtiqueta}.',
+            texto: e.fechaEvaluacion == null
+                ? 'Estado: ${e.estadoEtiqueta}.'
+                : 'Calificaste estas respuestas el ${formatearFechaHora(e.fechaEvaluacion!)}. '
+                      'Estado: ${e.estadoEtiqueta}.',
           ),
         for (var i = 0; i < e.preguntas.length; i++) ...[
           _RespuestaCard(
@@ -319,6 +319,24 @@ class _Resumen extends StatelessWidget {
             ),
           ),
           Text('Postulación a ${e.mascotaNombre}'),
+          const SizedBox(height: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.8),
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Text(
+              e.estado == EstadoPostulacionCodigo.descartadaEtapa1 ||
+                      e.estado.startsWith('CANCELADA')
+                  ? e.estadoEtiqueta
+                  : 'Etapa actual: ${e.etapaActual}${e.etapaNombre.isEmpty ? '' : ' · ${e.etapaNombre}'}',
+              style: theme.textTheme.labelLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
           if (e.fechaEnvio != null)
             Text(
               'Formulario enviado: ${formatearFechaHora(e.fechaEnvio!)}',
@@ -540,7 +558,7 @@ class _BarraDecision extends StatelessWidget {
                             child: CircularProgressIndicator(strokeWidth: 2.2),
                           )
                         : const Icon(Icons.check),
-                    label: Text('Aprobar ($total/$maximo)'),
+                    label: Text('Guardar ($total/$maximo)'),
                   ),
                 ),
               ],

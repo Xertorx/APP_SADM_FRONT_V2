@@ -64,7 +64,9 @@ class _PostulantesMascotaScreenState extends State<PostulantesMascotaScreen> {
       PreguntasFormulario? preguntas;
       final configService = ConfiguracionSeleccionService();
       try {
-        preguntas = await configService.obtenerPreguntasFormulario(widget.mascotaId);
+        preguntas = await configService.obtenerPreguntasFormulario(
+          widget.mascotaId,
+        );
       } on ApiException {
         preguntas = null; // El aviso es opcional: no bloquea la lista.
       } finally {
@@ -196,8 +198,8 @@ class _PostulantesMascotaScreenState extends State<PostulantesMascotaScreen> {
                                   Expanded(
                                     child: Text(
                                       pendientes == 1
-                                          ? 'Tienes 1 formulario pendiente por evaluar.'
-                                          : 'Tienes $pendientes formularios pendientes por evaluar.',
+                                          ? 'Tienes 1 formulario por calificar.'
+                                          : 'Tienes $pendientes formularios por calificar.',
                                     ),
                                   ),
                                 ],
@@ -236,7 +238,7 @@ class _PostulanteTile extends StatelessWidget {
         p.estado.startsWith('CANCELADA');
     final String accion;
     if (p.pendienteEvaluacion) {
-      accion = 'Evaluar';
+      accion = 'Calificar';
     } else if (p.formularioEnviado) {
       accion = 'Ver respuestas';
     } else {
@@ -276,7 +278,9 @@ class _PostulanteTile extends StatelessWidget {
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    Text(p.estadoEtiqueta, style: theme.textTheme.bodySmall),
+                    const SizedBox(height: 4),
+                    _ChipEtapa(postulante: p),
+                    const SizedBox(height: 4),
                     Text(
                       [
                         if (p.fechaPostulacion != null)
@@ -298,6 +302,63 @@ class _PostulanteTile extends StatelessWidget {
       ),
     );
     return descartada ? Opacity(opacity: 0.7, child: tile) : tile;
+  }
+}
+
+class _ChipEtapa extends StatelessWidget {
+  const _ChipEtapa({required this.postulante});
+
+  final Postulante postulante;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = postulante;
+    final descartada =
+        p.estado == EstadoPostulacionCodigo.descartadaEtapa1 ||
+        p.estado.startsWith('CANCELADA');
+    final texto = descartada
+        ? p.estadoEtiqueta
+        : 'Etapa ${p.etapaActual}${p.etapaNombre.isEmpty ? '' : ' · ${p.etapaNombre}'}';
+    return Wrap(
+      spacing: 6,
+      runSpacing: 4,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+          decoration: BoxDecoration(
+            color: descartada ? Colors.grey.shade300 : AppPalette.mint,
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Text(
+            texto,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: AppPalette.textDark,
+            ),
+          ),
+        ),
+        if (!descartada)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: p.pendienteEvaluacion ? AppPalette.peach : Colors.white,
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(
+                color: AppPalette.mintDark.withValues(alpha: 0.4),
+              ),
+            ),
+            child: Text(
+              !p.formularioEnviado
+                  ? 'Formulario sin enviar'
+                  : p.pendienteEvaluacion
+                  ? 'Respuestas por calificar'
+                  : 'Respuestas calificadas',
+              style: const TextStyle(fontSize: 12, color: AppPalette.textDark),
+            ),
+          ),
+      ],
+    );
   }
 }
 

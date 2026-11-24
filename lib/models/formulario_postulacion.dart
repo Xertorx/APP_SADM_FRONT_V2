@@ -60,6 +60,8 @@ class FormularioPostulacion {
     required this.estado,
     required this.estadoEtiqueta,
     required this.editable,
+    this.etapaActual = 1,
+    this.etapaNombre = '',
     required this.enviado,
     required this.preguntas,
     this.fechaEnvio,
@@ -74,6 +76,8 @@ class FormularioPostulacion {
         estado: _texto(json['estado']),
         estadoEtiqueta: _texto(json['estadoEtiqueta']),
         editable: json['editable'] == true,
+        etapaActual: _entero(json['etapaActual']) ?? 1,
+        etapaNombre: _texto(json['etapaNombre']),
         enviado: json['enviado'] == true,
         fechaEnvio: _fecha(json['fechaEnvio']),
         comentarioEvaluacion: json['comentarioEvaluacion'] as String?,
@@ -88,6 +92,8 @@ class FormularioPostulacion {
   final String estado;
   final String estadoEtiqueta;
   final bool editable;
+  final int etapaActual;
+  final String etapaNombre;
   final bool enviado;
   final DateTime? fechaEnvio;
   final String? comentarioEvaluacion;
@@ -141,6 +147,8 @@ class EvaluacionFormulario {
     required this.estadoEtiqueta,
     required this.evaluable,
     required this.puntajeMaximoEtapa,
+    this.etapaActual = 1,
+    this.etapaNombre = '',
     required this.puntajeObtenido,
     required this.preguntas,
     this.fechaEnvio,
@@ -156,6 +164,8 @@ class EvaluacionFormulario {
         estado: _texto(json['estado']),
         estadoEtiqueta: _texto(json['estadoEtiqueta']),
         evaluable: json['evaluable'] == true,
+        etapaActual: _entero(json['etapaActual']) ?? 1,
+        etapaNombre: _texto(json['etapaNombre']),
         fechaEnvio: _fecha(json['fechaEnvio']),
         fechaEvaluacion: _fecha(json['fechaEvaluacion']),
         puntajeMaximoEtapa: _entero(json['puntajeMaximoEtapa']) ?? 0,
@@ -172,6 +182,8 @@ class EvaluacionFormulario {
   final String estado;
   final String estadoEtiqueta;
   final bool evaluable;
+  final int etapaActual;
+  final String etapaNombre;
   final DateTime? fechaEnvio;
   final DateTime? fechaEvaluacion;
   final int puntajeMaximoEtapa;
@@ -190,6 +202,7 @@ class Postulante {
     required this.etapaActual,
     required this.puntaje,
     required this.formularioEnviado,
+    this.etapaNombre = '',
     required this.pendienteEvaluacion,
     this.fechaPostulacion,
     this.fechaEnvioFormulario,
@@ -202,6 +215,7 @@ class Postulante {
     estado: _texto(json['estado']),
     estadoEtiqueta: _texto(json['estadoEtiqueta']),
     etapaActual: _entero(json['etapaActual']) ?? 1,
+    etapaNombre: _texto(json['etapaNombre']),
     puntaje: _entero(json['puntaje']) ?? 0,
     formularioEnviado: json['formularioEnviado'] == true,
     fechaEnvioFormulario: _fecha(json['fechaEnvioFormulario']),
@@ -214,6 +228,7 @@ class Postulante {
   final String estado;
   final String estadoEtiqueta;
   final int etapaActual;
+  final String etapaNombre;
   final int puntaje;
   final bool formularioEnviado;
   final DateTime? fechaEnvioFormulario;

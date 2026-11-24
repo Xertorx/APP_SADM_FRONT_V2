@@ -144,8 +144,8 @@ class _FormularioPostulacionScreenState
       builder: (context) => AlertDialog(
         title: const Text('Enviar formulario'),
         content: const Text(
-          'Una vez enviado no podrás cambiar tus respuestas. El dador las revisará y te '
-          'avisaremos el resultado en "Mis postulaciones". ¿Deseas enviarlo?',
+          'Tus respuestas quedarán guardadas y pasarás a la etapa 2 (Documentos). '
+          'Después de enviarlo no podrás cambiarlas. ¿Deseas enviarlo?',
         ),
         actions: [
           TextButton(
@@ -173,12 +173,74 @@ class _FormularioPostulacionScreenState
         _ocupado = false;
         _enviado = true;
       });
-      _notificar(resultado.mensaje ?? 'Formulario enviado.');
+      await _mostrarPasoEtapa(resultado.formulario, resultado.mensaje);
     } on ApiException catch (e) {
       if (!mounted) return;
       setState(() => _ocupado = false);
       _notificar(e.message, error: true);
     }
+  }
+
+  /// Confirmación de que el formulario quedó guardado y el adoptante avanzó de etapa.
+  Future<void> _mostrarPasoEtapa(
+    FormularioPostulacion formulario,
+    String? mensaje,
+  ) async {
+    final etapa = formulario.etapaActual;
+    final nombre = formulario.etapaNombre.isEmpty
+        ? 'Documentos'
+        : formulario.etapaNombre;
+    final volver = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        icon: const CircleAvatar(
+          radius: 30,
+          backgroundColor: AppPalette.mint,
+          child: Icon(Icons.check, size: 34, color: AppPalette.textDark),
+        ),
+        title: const Text('¡Formulario enviado!', textAlign: TextAlign.center),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Tus respuestas quedaron guardadas.',
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppPalette.peach,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Text(
+                'Pasas a la etapa $etapa: $nombre',
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'El dador revisará tus respuestas. Sigue el avance en "Mis postulaciones".',
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Ver mis respuestas'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Ir a mis postulaciones'),
+          ),
+        ],
+      ),
+    );
+    if (volver == true && mounted) Navigator.of(context).pop(true);
   }
 
   void _notificar(String mensaje, {bool error = false}) {
@@ -280,7 +342,8 @@ class _FormularioPostulacionScreenState
         if (formulario.preguntas.isEmpty)
           const _Centro(
             icono: Icons.quiz_outlined,
-            texto: 'El dador todavía no ha definido las preguntas del formulario. '
+            texto:
+                'El dador todavía no ha definido las preguntas del formulario. '
                 'Vuelve más tarde: tu postulación sigue activa.',
           ),
         for (var i = 0; i < formulario.preguntas.length; i++) ...[
@@ -404,7 +467,9 @@ class _AvisoEstado extends StatelessWidget {
       _ => (
         Icons.check_circle_outline,
         AppPalette.mint,
-        'Superaste la etapa 1. Estado actual: ${formulario.estadoEtiqueta}.',
+        'Enviaste el formulario${formulario.fechaEnvio == null ? '' : ' el ${formatearFechaHora(formulario.fechaEnvio!)}'}. '
+            'Estás en la etapa ${formulario.etapaActual}'
+            '${formulario.etapaNombre.isEmpty ? '' : ': ${formulario.etapaNombre}'}.',
       ),
     };
     if (texto.isEmpty) return const SizedBox.shrink();
